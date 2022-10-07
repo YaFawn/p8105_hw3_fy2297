@@ -1,21 +1,60 @@
 ---
-title: "Simple document"
-output: html_document
+title: "p8105_hw3_fy2297"
+output: github_document
 ---
 
-I'm an R Markdown document! 
-
-# Section 1
-
-Here's a **code chunk** that samples from 
-a _normal distribution_:
+```{r}
+library(tidyverse)
+```
+# Problem 1
 
 ```{r}
-samp = rnorm(100)
-length(samp)
+library(p8105.datasets)
+data("instacart")
 ```
 
-# Section 2
 
-I can take the mean of the sample, too!
-The mean is `r mean(samp)`.
+# Problem 2
+```{r}
+# load, tidy, and otherwise wrangle the data.
+accel_df = read_csv("./datahw3/accel_data.csv") %>% 
+  janitor::clean_names() %>% 
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "activity",
+    values_to = "activity_value"
+  ) %>% 
+  mutate(
+    weekday_vs_weekend = case_when(
+      day == "Saturday" | day == "Sunday" ~ "weekend",
+      day != "Saturday" | day != "Sunday" ~ "weekday",
+      TRUE                                ~ ""
+    )
+  )
+# describe the resulting dataset
+
+
+# create a table that shows total activity for each day
+accel_df %>% 
+  group_by(week, day) %>% 
+  summarize(
+    total_activity = sum(activity_value)
+  ) %>%
+  arrange(day) %>% 
+  group_by(day) %>% 
+  pivot_wider(
+    names_from = day,
+    values_from = total_activity
+  ) %>% 
+  knitr::kable(digit = 1)
+# describe the trend in the table
+
+
+# create a dataset for plotting
+accel_plot_df = 
+
+# make a plot that shows 24-hour activity time for each day
+ggplot(accel_df, aes(x = activity, y = activity_value, color = day)) + geom_point() + geom_line()
+
+
+```
