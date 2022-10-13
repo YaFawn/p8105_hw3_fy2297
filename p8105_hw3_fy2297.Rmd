@@ -136,14 +136,15 @@ noaa_df =
   janitor::clean_names() %>% 
   separate(date, into = c("year", "month", "day"), sep = '-') %>% 
   rename(
-    tmax_frenheit = tmax,
-    tmin_frenheit = tmin,
+    tmax_celcius = tmax,
+    tmin_celcius = tmin,
     prcp_mm = prcp,
     snow_mm = snow
   ) %>% 
   mutate(
-    tmax_frenheit = as.numeric(tmax_frenheit),
-    tmin_frenheit = as.numeric(tmin_frenheit),
+    tmax_celcius = as.numeric(tmax_celcius)/10,
+    tmin_celcius = as.numeric(tmin_celcius)/10,
+    prcp_mm = prcp_mm/10,
     year = as.numeric(year)
   )
 # find the most commonly observed value for snowfall
@@ -163,15 +164,11 @@ temp_ave_max_plot =
   noaa_df %>% 
   filter(month == "07" | month == "01")%>% 
   group_by(year,month,id) %>% 
-  mutate(
-    tmax_frenheit = as.numeric(tmax_frenheit),
-    year = as.numeric(year)
-  )%>% 
-  summarize(average_tmax = mean(tmax_frenheit, na.rm = TRUE)) %>% 
+  summarize(average_tmax = mean(tmax_celcius, na.rm = TRUE)) %>% 
   ggplot(aes(x =year, y = average_tmax, color = month)) + geom_point() + geom_smooth() + labs(
     title = "max temperature in January and July in each station across years",
     x = "year",
-    y = "avarage max temperature (Frenheit)"
+    y = "avarage max temperature (celcius)"
   ) +
   theme(plot.title = element_text(hjust = 0.5)) +
   facet_grid(. ~month)
@@ -182,23 +179,34 @@ temp_ave_max_plot
 # make a two-panel plot showing 1. tmax vs tmin for the full dataset 2. distribution of snowfall values greater than 0 and less than 100 separately by year.
 tmax_vs_tmin = 
   noaa_df %>% 
-  drop_na(tmax_frenheit, tmin_frenheit) %>% 
-  ggplot(aes(x = tmin_frenheit, y = tmax_frenheit)) + geom_hex()+
+  drop_na(tmax_celcius, tmin_celcius) %>% 
+  ggplot(aes(x = tmin_celcius, y = tmax_celcius)) + geom_hex()+
   labs(
-    title = "tmax vs tmin (Frenheit)",
-      x = "tmin (Frenheit)",
-      y = "tmax (Frenheit)"
+    title = "tmax vs tmin (celcius)",
+      x = "tmin (celcius)",
+      y = "tmax (celcius)"
   ) +
+  theme(legend.position = "right") +
   theme(plot.title = element_text(hjust = 0.5))
 tmax_vs_tmin
 
 dist_snow = 
   noaa_df %>% 
-  filter(snow_mm <= 100 & snow_mm >=0) %>% 
-  ggplot(aes(x = snow_mm)) +
-  geom_histogram()+
-  facet_grid(.~year)
+  filter(snow_mm < 100 & snow_mm >0) %>% 
+  group_by(year) %>% 
+  ggplot(aes(x = year, y = snow_mm, group = year)) +
+  geom_boxplot()+
+  labs(
+    title = "snow distribution by year (between 0mm and 100mm)",
+      x = "year",
+      y = "snowfall (mm)") +
+   scale_x_continuous(
+    breaks = c(1980, 1985, 1990, 1995, 2000, 2005, 2010)
+  )+
+  theme(plot.title = element_text(hjust = 0.5))
 dist_snow
+
+
 
 tmax_vs_tmin/dist_snow
 ```
