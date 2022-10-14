@@ -35,6 +35,55 @@ insta_df =
   janitor::clean_names()
 ```
 
+```{r}
+# find how many aisles and which aisles are the most popular.
+insta_df %>% 
+  count(aisle) %>% 
+  arrange(-n)
+```
+we can see that there are 134 aisles, with "fresh vegetables", "fresh fruits", and "packaged vegetables fruits" being the top 3 aisles people order from.
+
+```{r}
+# make a plot that shows the number of items ordered in each aisle
+insta_df %>% 
+  count(aisle) %>% 
+  filter(n>10000) %>% 
+  arrange(-n) %>% 
+  mutate(aisle = fct_reorder(aisle, n, .desc = TRUE)) %>% 
+  ggplot(aes(x=aisle, y=n)) + geom_point()+
+  labs(
+    title = "Items ordered in each aisle",
+    x = "Aisle name",
+    y = "Items ordered"
+  ) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+
+```{r}
+# make a table showing the three most popular items in required aisles
+insta_df %>% 
+  filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
+  group_by(aisle) %>% 
+  count(product_name) %>% 
+  arrange(-n) %>% 
+  mutate(rank = min_rank(desc(n))) %>% 
+  filter(rank<=3) %>% 
+  knitr::kable()
+```
+
+```{r}
+# make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week
+insta_df %>% 
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
+  group_by(product_name, order_dow) %>% 
+  summarize(mean_hour = mean(order_hour_of_day)) %>% 
+  pivot_wider(
+    names_from = order_dow,
+    values_from = mean_hour
+  ) %>% 
+  knitr::kable(digits = 1)
+```
 
 # Problem 2
 ```{r}
